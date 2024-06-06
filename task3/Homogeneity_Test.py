@@ -195,5 +195,7 @@ def main(image_path):
 
 
 if __name__ == '__main__':
-    image_path = '../Data/task1/task1_13.bmp'
+    # E:\workspace\Data\LED_data\task1
+    image_path = '../../Data/LED_data/task1/task1_13.bmp'
+
     main(image_path)
