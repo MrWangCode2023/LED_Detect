@@ -1,10 +1,9 @@
 import cv2
-import numpy as np
+from common.Common import show_object_color
 
-def show_LED_color(color=(0, 0, 0)):
-    # 定义图像的宽度和高度
-    width = 640
-    height = 640
-    # 创建一个纯色图像，大小为 width x height，数据类型为 uint8
-    color_image = np.full((height, width, 3), color, dtype=np.uint8)
-    return color_image
+
+if __name__ == "__main__":
+    color = show_object_color((0, 0, 255))
+    cv2.imshow("color show", color)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows("q")

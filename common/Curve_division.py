@@ -57,9 +57,11 @@ def draw_divided_points(image, points_and_angles):
         cv2.line(image, (int(x), int(y)), (x_end, y_end), color=(0, 255, 0), thickness=1)
     return image
 
+
 if __name__ == '__main__':
     # 读取图像并计算曲线长度及像素坐标
-    image = cv2.imread('../Data/task1/task1_13.bmp')
+    image = cv2.imread("../../Data/LED_data/task2/06.bmp")
+    # image_path = "../../Data/LED_data/task1/task1_13.jpg"  # 替换为实际图像路径
     curve = object_curve_fitting(image)  # (curve_image, curve_coordinates, curve_length)
 
     # 计算等分点坐标及对应角度

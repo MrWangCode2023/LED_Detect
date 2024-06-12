@@ -20,48 +20,66 @@ import time
 """
 ############################### 1. LED区域检测 ####################################
 def object_extraction(image):
-    # 转换为灰度图像
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    img = np.copy(image)
+    # 设置边框参数
+    border_color = (0, 0, 0)  # 边框颜色，这里为黑色
+    border_thickness = 7  # 边框厚度，单位为像素
+    # 计算边框的位置和大小
+    height, width, _ = img.shape
+    border_top = border_left = 0
+    border_bottom = height - 1
+    border_right = width - 1
+    # 绘制边框
+    cv2.rectangle(img, (border_left, border_top), (border_right, border_bottom), border_color, border_thickness)
 
-    # 应用高斯模糊
-    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+    # gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    # blurred = cv2.GaussianBlur(gray, (3, 3), 0)
+    blurred = cv2.GaussianBlur(img, (3, 3), 0)
 
-    # 应用二值化
-    _, binary = cv2.threshold(blurred, 30, 255, cv2.THRESH_BINARY)
+    edges = cv2.Canny(blurred, threshold1=120, threshold2=240)
 
-    # 找到轮廓
-    contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+    contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
-    mask = np.zeros(image.shape[:2], dtype=np.uint8)
-
-    # 过滤轮廓，假设我们只保留面积大于100的轮廓
+    mask = np.zeros(img.shape[:2], dtype=np.uint8)
     filtered_contours = []
     for contour in contours:
-        if cv2.contourArea(contour) > 2000:
+        if cv2.contourArea(contour) >= 800:
             filtered_contours.append(contour)
             cv2.drawContours(mask, [contour], -1, 255, thickness=cv2.FILLED)
-    binary = mask
 
-    ROI_count = len(filtered_contours)
+    # 定义结构元素
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
+    iterations = 3
+    closed = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel, iterations=iterations)
 
-    # print("检测到的LED区域数量：", ROI_count)
-    return filtered_contours, binary, ROI_count
+    # 在此处绘制所有过滤后的轮廓
+    binary = closed.copy()
+    cv2.drawContours(binary, filtered_contours, -1, 255, thickness=cv2.FILLED)
+    cv2.rectangle(binary, (border_left, border_top), (border_right, border_bottom), border_color,
+                  border_thickness)
 
+    roi_count = len(filtered_contours)
+
+    # print("Number of Objects:", roi_count)
+    # cv2.imshow("Image", image)
+    # cv2.imshow("Binary Image", binary)
+    # cv2.imshow("Edges", edges)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
+
+    return filtered_contours, binary, roi_count
 ############################## 2. 获取目标区域像素值 ##################################
 def object_color_extraction(image):
     ROI = namedtuple('ROI', ['ROI_BGR_mean', 'ROI_HSV_mean', 'brightness', 'ROI_count'])
-    filtered_contours, binary, ROI_count = object_extraction(image)
-    roi_color_image = cv2.bitwise_and(image, image, mask=binary)
+    filtered_contours, binary, object_count = object_extraction(image)
+    object_color_image = cv2.bitwise_and(image, image, mask=binary)
     # 计算掩码图像中非零像素的数量
     nonzero_pixel_count = float(np.count_nonzero(binary))
-    # 避免被除数为零
-    if nonzero_pixel_count == 0:
-        return ROI((0, 0, 0), (0, 0, 0), 0, ROI_count)
 
     # 通道拆分
-    blue_channel = roi_color_image[:, :, 0]
-    green_channel = roi_color_image[:, :, 1]
-    red_channel = roi_color_image[:, :, 2]
+    blue_channel = object_color_image[:, :, 0]
+    green_channel = object_color_image[:, :, 1]
+    red_channel = object_color_image[:, :, 2]
 
     blue_sum = np.sum(blue_channel)
     green_sum = np.sum(green_channel)
@@ -78,11 +96,17 @@ def object_color_extraction(image):
     ROI_HSV_mean = cv2.cvtColor(bgr_mean, cv2.COLOR_BGR2HSV)[0][0]
     brightness = ROI_HSV_mean[2]
 
+    color_image = show_object_color(ROI_BGR_mean)
+    # cv2.imshow("binary", binary)
+    # cv2.imshow("object_color_image", object_color_image)
+    # cv2.imshow("color", color_image)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
 
-    return ROI(ROI_BGR_mean, ROI_HSV_mean, brightness, ROI_count)
+    return ROI(ROI_BGR_mean, ROI_HSV_mean, brightness, object_count)
 
 ####################################### 3. 用窗口展示像素值的颜色 #########################################
-def show_LED_color(color=(0, 0, 0)):
+def show_object_color(color=(0, 0, 0)):
     # 定义图像的宽度和高度
     width, height = 640, 640
     # 创建一个纯色图像，大小为 width x height，数据类型为 uint8
@@ -92,18 +116,25 @@ def show_LED_color(color=(0, 0, 0)):
 ####################################### 4. 目标区域曲线拟合 ###############################################
 def object_curve_fitting(image):
     curve = namedtuple('curve', ['curve_image', 'curve_coordinates', 'curve_length'])
-    filtered_contours, binary, area_count = object_extraction(image)
+    filtered_contours, binary, roi_count = object_extraction(image)
     binary_image = binary.copy()
+
     # 细化算法API
     curve_image = cv2.ximgproc.thinning(binary_image)  # 只有一个像素的线
     nonzero_pixels = np.nonzero(curve_image)
 
     # 如果没有检测到曲线，返回None
     if len(nonzero_pixels[0]) == 0:
-        return None
+        return curve(None, None, None)
 
     curve_coordinates = np.column_stack((nonzero_pixels[1], nonzero_pixels[0]))
     curve_length = cv2.arcLength(np.array(curve_coordinates), closed=False)  # 接受的参数为数组类型
+
+    # cv2.imshow('image', image)
+    # cv2.imshow('binary', binary_image)
+    # cv2.imshow('curve_img', curve_image)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
 
     return curve(curve_image, curve_coordinates, curve_length)
 
@@ -230,13 +261,13 @@ def draw_rectangle_roi_base_on_points(image, num_divisions=50, roi_size=20):
         rect = (center, size, angle)
         box = cv2.boxPoints(rect)  # 计算出旋转矩形坐标顶点
         box = np.intp(box)
-        cv2.drawContours(image_with_roi, [box], 0, (255, 255, 255), 2)
+        cv2.drawContours(image_with_roi, [box], 0, (0, 0, 255), 2)
         rois.append(box.tolist())  # 将ROI顶点坐标添加到列表中
 
     return image_with_roi, rois  # 返回绘制ROI的图像和roi顶点坐标
 
 ############################################ 9 分析ROI区域像素 #####################################################
-def analyze_image_with_rois(image, num_divisions=50, roi_size=20, brightness_threshold=50):
+def analyze_image_with_rois(image, num_divisions=30, roi_size=20, brightness_threshold=50):
     # 调用绘制ROI的函数，获取带有绘制ROI的图像和ROI顶点坐标
     image_with_roi, rois = draw_rectangle_roi_base_on_points(image, num_divisions, roi_size)
 

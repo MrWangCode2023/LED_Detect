@@ -1,75 +1,393 @@
+# import cv2
+# from collections import namedtuple
+# import numpy as np
+#
+# def object_extraction(image):
+#     img = np.copy(image)
+#     border_color = (0, 0, 0)
+#     border_thickness = 7
+#     height, width, _ = img.shape
+#     border_top = border_left = 0
+#     border_bottom = height - 1
+#     border_right = width - 1
+#     cv2.rectangle(img, (border_left, border_top), (border_right, border_bottom), border_color, border_thickness)
+#     blurred = cv2.GaussianBlur(img, (3, 3), 0)
+#     edges = cv2.Canny(blurred, threshold1=120, threshold2=240)
+#     contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+#     mask = np.zeros(img.shape[:2], dtype=np.uint8)
+#     filtered_contours = []
+#     for contour in contours:
+#         if cv2.contourArea(contour) >= 800:
+#             filtered_contours.append(contour)
+#             cv2.drawContours(mask, [contour], -1, 255, thickness=cv2.FILLED)
+#     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
+#     iterations = 3
+#     closed = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel, iterations=iterations)
+#     binary = closed.copy()
+#     cv2.drawContours(binary, filtered_contours, -1, 255, thickness=cv2.FILLED)
+#     cv2.rectangle(binary, (border_left, border_top), (border_right, border_bottom), border_color, border_thickness)
+#     roi_count = len(filtered_contours)
+#     return filtered_contours, binary, roi_count
+#
+# def object_curve_fitting(image):
+#     curve = namedtuple('curve', ['curve_image', 'curve_coordinates', 'curve_length'])
+#     filtered_contours, binary, roi_count = object_extraction(image)
+#     binary_image = binary.copy()
+#
+#     # 细化算法API
+#     curve_image = cv2.ximgproc.thinning(binary_image)  # 只有一个像素的线
+#     nonzero_pixels = np.nonzero(curve_image)
+#
+#     # 如果没有检测到曲线，返回None
+#     if len(nonzero_pixels[0]) == 0:
+#         return curve(None, None, None)
+#
+#     curve_coordinates = np.column_stack((nonzero_pixels[1], nonzero_pixels[0]))
+#     curve_length = cv2.arcLength(np.array(curve_coordinates), closed=False)  # 接受的参数为数组类型
+#
+#     # cv2.imshow('image', image)
+#     # cv2.imshow('binary', binary_image)
+#     # cv2.imshow('curve_img', curve_image)
+#     # cv2.waitKey(0)
+#     # cv2.destroyAllWindows()
+#
+#     return curve(curve_image, curve_coordinates, curve_length)
+#
+# def is_continuous_and_uniform(curve_image):
+#     if curve_image is None:
+#         return False, False
+#     nonzero_pixels = np.column_stack(np.nonzero(curve_image))
+#     height, width = curve_image.shape
+#     is_continuous = True
+#     for y, x in nonzero_pixels:
+#         neighborhood = curve_image[max(0, y - 1):min(y + 2, height), max(0, x - 1):min(x + 2, width)]
+#         if np.sum(neighborhood) < 2:
+#             is_continuous = False
+#             break
+#     dist_transform = cv2.distanceTransform(cv2.bitwise_not(curve_image), cv2.DIST_L2, 5)
+#     max_dist = np.max(dist_transform)
+#     is_uniform = max_dist <= 1.0
+#     return is_continuous, is_uniform
+#
+# if __name__ == "__main__":
+#     image = cv2.imread('../../Data/LED_data/task1/task1_13.bmp')
+#     curve = object_curve_fitting(image)
+#     is_continuous, is_uniform = is_continuous_and_uniform(curve.curve_image)
+#     print(f"Curve Image: {curve.curve_image is not None}")
+#     print(f"Curve Coordinates: {curve.curve_coordinates is not None}")
+#     print(f"Curve Length: {curve.curve_length}")
+#     print(f"Is Continuous: {is_continuous}")
+#     print(f"Is Uniform: {is_uniform}")
+
+##################
+# import cv2
+# from collections import namedtuple
+# import numpy as np
+#
+#
+# def object_extraction(image):
+#     img = np.copy(image)
+#     border_color = (0, 0, 0)
+#     border_thickness = 7
+#     height, width, _ = img.shape
+#     border_top = border_left = 0
+#     border_bottom = height - 1
+#     border_right = width - 1
+#     cv2.rectangle(img, (border_left, border_top), (border_right, border_bottom), border_color, border_thickness)
+#
+#     # 图像预处理
+#     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+#     blurred = cv2.GaussianBlur(gray, (3, 3), 0)
+#     edges = cv2.Canny(blurred, threshold1=50, threshold2=150)
+#
+#     # 使用自适应阈值
+#     binary = cv2.adaptiveThreshold(blurred, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
+#     contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+#
+#     mask = np.zeros(img.shape[:2], dtype=np.uint8)
+#     filtered_contours = []
+#     for contour in contours:
+#         if cv2.contourArea(contour) >= 800:
+#             filtered_contours.append(contour)
+#             cv2.drawContours(mask, [contour], -1, 255, thickness=cv2.FILLED)
+#
+#     # 形态学操作
+#     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
+#     iterations = 3
+#     closed = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel, iterations=iterations)
+#     binary = closed.copy()
+#     cv2.drawContours(binary, filtered_contours, -1, 255, thickness=cv2.FILLED)
+#     cv2.rectangle(binary, (border_left, border_top), (border_right, border_bottom), border_color, border_thickness)
+#     roi_count = len(filtered_contours)
+#
+#     return filtered_contours, binary, roi_count
+#
+#
+# def object_curve_fitting(image):
+#     curve = namedtuple('curve', ['curve_image', 'curve_coordinates', 'curve_length'])
+#     filtered_contours, binary, roi_count = object_extraction(image)
+#     binary_image = binary.copy()
+#
+#     # 细化算法API
+#     binary_image = cv2.cvtColor(binary_image, cv2.COLOR_GRAY2BGR)  # 确保是三通道图像
+#     curve_image = cv2.ximgproc.thinning(cv2.cvtColor(binary_image, cv2.COLOR_BGR2GRAY))  # 细化为单像素曲线
+#     nonzero_pixels = np.nonzero(curve_image)
+#
+#     # 如果没有检测到曲线，返回None
+#     if len(nonzero_pixels[0]) == 0:
+#         return curve(None, None, None)
+#
+#     curve_coordinates = np.column_stack((nonzero_pixels[1], nonzero_pixels[0]))
+#     curve_length = cv2.arcLength(np.array(curve_coordinates), closed=False)  # 接受的参数为数组类型
+#
+#     return curve(curve_image, curve_coordinates, curve_length)
+#
+#
+# def is_continuous_and_uniform(curve_image):
+#     if curve_image is None:
+#         return False, False
+#     nonzero_pixels = np.column_stack(np.nonzero(curve_image))
+#     height, width = curve_image.shape
+#     is_continuous = True
+#     for y, x in nonzero_pixels:
+#         neighborhood = curve_image[max(0, y - 1):min(y + 2, height), max(0, x - 1):min(x + 2, width)]
+#         if np.sum(neighborhood) < 2:
+#             is_continuous = False
+#             break
+#     dist_transform = cv2.distanceTransform(cv2.bitwise_not(curve_image), cv2.DIST_L2, 5)
+#     max_dist = np.max(dist_transform)
+#     is_uniform = max_dist <= 1.0
+#     return is_continuous, is_uniform
+#
+#
+# if __name__ == "__main__":
+#     image = cv2.imread('../../Data/LED_data/task1/task1_13.bmp')
+#     curve = object_curve_fitting(image)
+#     is_continuous, is_uniform = is_continuous_and_uniform(curve.curve_image)
+#     print(f"Curve Image: {curve.curve_image is not None}")
+#     print(f"Curve Coordinates: {curve.curve_coordinates is not None}")
+#     print(f"Curve Length: {curve.curve_length}")
+#     print(f"Is Continuous: {is_continuous}")
+#     print(f"Is Uniform: {is_uniform}")
+########
+# import cv2
+# import numpy as np
+# from skimage.morphology import skeletonize
+# from skimage import img_as_ubyte
+# from collections import namedtuple
+# from scipy.interpolate import splprep, splev
+# import matplotlib.pyplot as plt
+#
+#
+# def object_extraction(image):
+#     img = np.copy(image)
+#     border_color = (0, 0, 0)
+#     border_thickness = 7
+#     height, width, _ = img.shape
+#     border_top = border_left = 0
+#     border_bottom = height - 1
+#     border_right = width - 1
+#     cv2.rectangle(img, (border_left, border_top), (border_right, border_bottom), border_color, border_thickness)
+#
+#     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+#     blurred = cv2.GaussianBlur(gray, (3, 3), 0)
+#     edges = cv2.Canny(blurred, threshold1=50, threshold2=150)
+#
+#     binary = cv2.adaptiveThreshold(blurred, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
+#     contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+#
+#     mask = np.zeros(img.shape[:2], dtype=np.uint8)
+#     filtered_contours = []
+#     for contour in contours:
+#         if cv2.contourArea(contour) >= 800:
+#             filtered_contours.append(contour)
+#             cv2.drawContours(mask, [contour], -1, 255, thickness=cv2.FILLED)
+#
+#     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
+#     iterations = 3
+#     closed = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel, iterations=iterations)
+#     binary = closed.copy()
+#     cv2.drawContours(binary, filtered_contours, -1, 255, thickness=cv2.FILLED)
+#     cv2.rectangle(binary, (border_left, border_top), (border_right, border_bottom), border_color, border_thickness)
+#     roi_count = len(filtered_contours)
+#
+#     return filtered_contours, binary, roi_count
+#
+#
+# def object_curve_fitting(image):
+#     curve = namedtuple('curve', ['curve_image', 'curve_coordinates', 'curve_length'])
+#     filtered_contours, binary, roi_count = object_extraction(image)
+#     binary_image = binary.copy()
+#
+#     skeleton = skeletonize(binary_image // 255)  # Skeletonize the binary image
+#     curve_image = img_as_ubyte(skeleton)
+#     nonzero_pixels = np.nonzero(curve_image)
+#
+#     if len(nonzero_pixels[0]) == 0:
+#         return curve(None, None, None)
+#
+#     curve_coordinates = np.column_stack((nonzero_pixels[1], nonzero_pixels[0]))
+#     curve_length = cv2.arcLength(np.array(curve_coordinates), closed=False)
+#
+#     return curve(curve_image, curve_coordinates, curve_length)
+#
+#
+# def is_continuous_and_uniform(curve_image):
+#     if curve_image is None:
+#         return False, False
+#     nonzero_pixels = np.column_stack(np.nonzero(curve_image))
+#     height, width = curve_image.shape
+#     is_continuous = True
+#     for y, x in nonzero_pixels:
+#         neighborhood = curve_image[max(0, y - 1):min(y + 2, height), max(0, x - 1):min(x + 2, width)]
+#         if np.sum(neighborhood) < 2:
+#             is_continuous = False
+#             break
+#     dist_transform = cv2.distanceTransform(cv2.bitwise_not(curve_image), cv2.DIST_L2, 5)
+#     max_dist = np.max(dist_transform)
+#     is_uniform = max_dist <= 1.0
+#     return is_continuous, is_uniform
+#
+#
+# def fit_b_spline(curve_coordinates):
+#     if curve_coordinates is None:
+#         return None
+#     tck, u = splprep([curve_coordinates[:, 0], curve_coordinates[:, 1]], s=3)
+#     u_new = np.linspace(u.min(), u.max(), 1000)
+#     x_new, y_new = splev(u_new, tck)
+#     return np.column_stack((x_new, y_new))
+#
+#
+# if __name__ == "__main__":
+#     image = cv2.imread('../../Data/LED_data/task1/task1_13.bmp')
+#     curve = object_curve_fitting(image)
+#
+#     if curve.curve_coordinates is not None:
+#         fitted_curve = fit_b_spline(curve.curve_coordinates)
+#         is_continuous, is_uniform = is_continuous_and_uniform(curve.curve_image)
+#
+#         print(f"Curve Image: {curve.curve_image is not None}")
+#         print(f"Curve Coordinates: {curve.curve_coordinates is not None}")
+#         print(f"Curve Length: {curve.curve_length}")
+#         print(f"Is Continuous: {is_continuous}")
+#         print(f"Is Uniform: {is_uniform}")
+#
+#         plt.figure()
+#         plt.imshow(curve.curve_image, cmap='gray')
+#         plt.plot(fitted_curve[:, 0], fitted_curve[:, 1], 'r-', linewidth=2)
+#         plt.title("Fitted B-Spline Curve")
+#         plt.show()
+#
+#     else:
+#         print("No curve detected")
+#########
 import cv2
 import numpy as np
+from skimage.morphology import skeletonize
+from skimage import img_as_ubyte
+from collections import namedtuple
+from scipy.interpolate import splprep, splev
+import matplotlib.pyplot as plt
 
 
-def draw_rectangle_roi_base_on_points(image, points_and_angles, roi_size=20):
-    """
-    在图像上绘制以每个点为中心，并根据指定角度旋转的矩形ROI区域。
+def object_extraction(image):
+    img = np.copy(image)
+    border_color = (0, 0, 0)
+    border_thickness = 7
+    height, width, _ = img.shape
+    border_top = border_left = 0
+    border_bottom = height - 1
+    border_right = width - 1
+    cv2.rectangle(img, (border_left, border_top), (border_right, border_bottom), border_color, border_thickness)
 
-    Parameters:
-    - image: 输入图像
-    - points_and_angles: 包含坐标点和角度的列表，格式 [(point1, angle1), (point2, angle2), ..., (pointn, anglen)]
-    - roi_size: ROI矩形区域的尺寸（默认是20）
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    blurred = cv2.GaussianBlur(gray, (3, 3), 0)
+    edges = cv2.Canny(blurred, threshold1=50, threshold2=150)
 
-    Returns:
-    - image_with_roi: 绘制了ROI矩形区域的图像
-    - rois: 提取的ROI区域像素列表
-    """
-    image_with_roi = image.copy()
-    half_size = roi_size // 2
-    rois = []
+    binary = cv2.adaptiveThreshold(blurred, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
+    contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
-    for (point, angle) in points_and_angles:
-        center = (int(point[0]), int(point[1]))
-        size = (roi_size, roi_size)
+    mask = np.zeros(img.shape[:2], dtype=np.uint8)
+    filtered_contours = []
+    for contour in contours:
+        if cv2.contourArea(contour) >= 800:
+            filtered_contours.append(contour)
+            cv2.drawContours(mask, [contour], -1, 255, thickness=cv2.FILLED)
 
-        # 旋转矩形
-        rect = (center, size, angle)
-        box = cv2.boxPoints(rect)
-        box = np.intp(box)
-        cv2.drawContours(image_with_roi, [box], 0, (255, 255, 255), 2)
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
+    iterations = 3
+    closed = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel, iterations=iterations)
+    binary = closed.copy()
+    cv2.drawContours(binary, filtered_contours, -1, 255, thickness=cv2.FILLED)
+    cv2.rectangle(binary, (border_left, border_top), (border_right, border_bottom), border_color, border_thickness)
+    roi_count = len(filtered_contours)
 
-        # 提取旋转后的ROI区域像素
-        mask = np.zeros(image.shape[:2], dtype=np.uint8)
-        cv2.drawContours(mask, [box], 0, (255), thickness=cv2.FILLED)
-        roi = cv2.bitwise_and(image, image, mask=mask)
-        x, y, w, h = cv2.boundingRect(box)
-        roi_cropped = roi[y:y + h, x:x + w]
-        rois.append(roi_cropped)
-
-    return image_with_roi, rois
+    return filtered_contours, binary, roi_count
 
 
-# 示例代码
+def object_curve_fitting(image):
+    curve = namedtuple('curve', ['curve_image', 'curve_coordinates', 'curve_length'])
+    filtered_contours, binary, roi_count = object_extraction(image)
+    binary_image = binary.copy()
+
+    skeleton = skeletonize(binary_image // 255)  # Skeletonize the binary image
+    curve_image = img_as_ubyte(skeleton)
+    nonzero_pixels = np.nonzero(curve_image)
+
+    if len(nonzero_pixels[0]) == 0:
+        return curve(None, None, None)
+
+    curve_coordinates = np.column_stack((nonzero_pixels[1], nonzero_pixels[0]))
+    curve_length = cv2.arcLength(np.array(curve_coordinates), closed=False)
+
+    return curve(curve_image, curve_coordinates, curve_length)
+
+
+def is_continuous_and_uniform(curve_image):
+    if curve_image is None:
+        return False, False
+    nonzero_pixels = np.column_stack(np.nonzero(curve_image))
+    height, width = curve_image.shape
+    is_continuous = True
+    for y, x in nonzero_pixels:
+        neighborhood = curve_image[max(0, y - 1):min(y + 2, height), max(0, x - 1):min(x + 2, width)]
+        if np.sum(neighborhood) < 2:
+            is_continuous = False
+            break
+    dist_transform = cv2.distanceTransform(cv2.bitwise_not(curve_image), cv2.DIST_L2, 5)
+    max_dist = np.max(dist_transform)
+    is_uniform = max_dist <= 1.0
+    return is_continuous, is_uniform
+
+
+def fit_b_spline(curve_coordinates):
+    if curve_coordinates is None:
+        return None
+    tck, u = splprep([curve_coordinates[:, 0], curve_coordinates[:, 1]], s=3)
+    u_new = np.linspace(u.min(), u.max(), 1000)
+    x_new, y_new = splev(u_new, tck)
+    return np.column_stack((x_new, y_new))
+
+
 if __name__ == "__main__":
-    # 读取输入图像
-    image = cv2.imread('../Data/task1/task1_13.bmp')
+    image = cv2.imread('../../Data/LED_data/task1/task1_13.bmp')
+    curve = object_curve_fitting(image)
 
-    # 定义矩形的中心点、尺寸和角度
-    points_and_angles = [
-        (np.array([425.24548175, 846.75451825]), -143.50432798364128),
-        (np.array([406.98265277, 872.01734723]), -144.33533930347318),
-        (np.array([394.74683828, 889.25316172]), -143.5300010143727),
-        (np.array([378.64628695, 910.35371305]), -142.92610596251635),
-        (np.array([363.83398124, 930.16601876]), -143.9552079161335),
-        (np.array([346.57115225, 954.42884775]), -144.9987519480493),
-        (np.array([333.46595332, 973.53404668]), -144.3462026077095),
-        (np.array([318.6536476, 993.3463524]), -142.02947300181845),
-        (np.array([301.16979547, 1014.91510226]), -155.2768632851831),
-        (np.array([304.99998317, 1023.0]), 154.6509341809821)
-    ]
+    if curve.curve_coordinates is not None:
+        fitted_curve = fit_b_spline(curve.curve_coordinates)
+        is_continuous, is_uniform = is_continuous_and_uniform(curve.curve_image)
 
-    # 绘制并提取旋转后的ROI区域
-    image_with_roi, rois = draw_rectangle_roi_base_on_points(image, points_and_angles)
+        print(f"Curve Image: {curve.curve_image is not None}")
+        print(f"Curve Coordinates: {curve.curve_coordinates is not None}")
+        print(f"Curve Length: {curve.curve_length}")
+        print(f"Is Continuous: {is_continuous}")
+        print(f"Is Uniform: {is_uniform}")
 
-    # 显示绘制了ROI矩形区域的图像
-    cv2.imshow("Image with ROIs", image_with_roi)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+        plt.figure()
+        plt.imshow(curve.curve_image, cmap='gray')
+        plt.plot(fitted_curve[:, 0], fitted_curve[:, 1], 'r-', linewidth=2)
+        plt.title("Fitted B-Spline Curve")
+        plt.show()
 
-    # 打印或处理提取的ROI区域像素
-    for i, roi in enumerate(rois):
-        cv2.imshow(f"ROI {i + 1}", roi)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
-        print(f"ROI {i + 1} 像素值：", roi)
+    else:
+        print("No curve detected")

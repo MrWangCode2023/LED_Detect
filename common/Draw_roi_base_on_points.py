@@ -79,10 +79,10 @@ def draw_rectangle_roi_base_on_points(image, num_divisions=50, roi_size=20):
 ################################################################################################
 if __name__ == '__main__':
     # 读取图像
-    image = cv2.imread('../Data/task1/task1_13.bmp')
+    image = cv2.imread('../../Data/LED_data/task1/task1_13.bmp')
 
     # 旋转后的ROI矩形
-    image_with_rois, rois = draw_rectangle_roi_base_on_points(image, num_divisions=55, roi_size=20)
+    image_with_rois, rois = draw_rectangle_roi_base_on_points(image, num_divisions=30, roi_size=20)
     # ROI圆形
     # image_with_rois = draw_circle_roi_base_on_points(image, 50, roi_size=20)
 

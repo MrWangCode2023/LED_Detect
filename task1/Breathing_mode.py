@@ -374,20 +374,59 @@ from sklearn.mixture import GaussianMixture
 from sklearn.metrics import silhouette_score
 from joblib import Parallel, delayed
 
-
 def object_extraction(image):
     ROIResult = namedtuple('ROIResult', ['filtered_contours', 'binary_image', 'roi_count'])
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    img = np.copy(image)
+    # 设置边框参数
+    border_color = (0, 0, 0)  # 边框颜色，这里为绿色
+    border_thickness = 12  # 边框厚度，单位为像素
+    # 计算边框的位置和大小
+    height, width, _ = img.shape
+    border_top = border_left = 0
+    border_bottom = height - 1
+    border_right = width - 1
+    # 绘制边框
+    cv2.rectangle(img, (border_left, border_top), (border_right, border_bottom), border_color,
+                  border_thickness)
+
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-    _, binary = cv2.threshold(blurred, 30, 255, cv2.THRESH_BINARY)
-    contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-    mask = np.zeros(image.shape[:2], dtype=np.uint8)
-    filtered_contours = [contour for contour in contours if cv2.contourArea(contour) > 2000]
-    for contour in filtered_contours:
-        cv2.drawContours(mask, [contour], -1, 255, thickness=cv2.FILLED)
-    binary_image = mask
+
+    # _, binary = cv.threshold(blurred, 30, 255, cv2.THRESH_BINARY)
+    edges = cv2.Canny(blurred, threshold1=60, threshold2=180)
+
+    contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+    mask = np.zeros(img.shape[:2], dtype=np.uint8)
+    filtered_contours = []
+    for contour in contours:
+        if cv2.contourArea(contour) >= 200:
+            filtered_contours.append(contour)
+            cv2.drawContours(mask, [contour], -1, 255, thickness=cv2.FILLED)
+        binary = mask
     roi_count = len(filtered_contours)
-    return ROIResult(filtered_contours, binary_image, roi_count)
+
+    # cv.imshow("gray image", gray)
+    # cv.imshow("binary", binary)
+    # cv.imshow("edge", edges)
+    # cv.waitKey(0)
+    # cv.destroyAllWindows()
+    return ROIResult(filtered_contours, binary, roi_count)
+
+    # return filtered_contours, binary, roi_count
+
+# def object_extraction(image):
+#     ROIResult = namedtuple('ROIResult', ['filtered_contours', 'binary_image', 'roi_count'])
+#     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+#     blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+#     _, binary = cv2.threshold(blurred, 30, 255, cv2.THRESH_BINARY)
+#     contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+#     mask = np.zeros(image.shape[:2], dtype=np.uint8)
+#     filtered_contours = [contour for contour in contours if cv2.contourArea(contour) > 2000]
+#     for contour in filtered_contours:
+#         cv2.drawContours(mask, [contour], -1, 255, thickness=cv2.FILLED)
+#     binary_image = mask
+#     roi_count = len(filtered_contours)
+#     return ROIResult(filtered_contours, binary_image, roi_count)
 
 def object_color_extraction(image):
     ROI = namedtuple('ROI', ['ROI_BGR_mean', 'ROI_HSV_mean', 'brightness', 'ROI_count', 'filtered_contours'])
