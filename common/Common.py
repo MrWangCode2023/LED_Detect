@@ -27,7 +27,10 @@ import matplotlib.pyplot as plt
                                       draw_circle_roi_base_on_points(image, points, roi_size=20)
 8 输入image获取目标区域等分ROI:           draw_rectangle_roi_base_on_points(image, num_divisions=50, roi_size=20)
                                       draw_circle_roi_base_on_points(image, num_divisions=50, roi_size=20)
-9 分析ROI区域像素                       analyze_image_with_rois(image, num_divisions=50, roi_size=20, brightness_threshold=50)   
+9 分析ROI区域像素                       analyze_image_with_rois(image, num_divisions=50, roi_size=20, brightness_threshold=50)
+10 细化/骨架提取算法                     morphological_skeleton(binary_image)
+11 RGB转CIE1931                       rgb_to_CIE1931(rgb)
+12 展示图像                            show_image(image_dict)
 """
 ############################### 1. LED区域检测 ####################################
 def object_extraction(image):
@@ -47,36 +50,41 @@ def object_extraction(image):
     # blurred = cv2.GaussianBlur(gray, (3, 3), 0)
     blurred = cv2.GaussianBlur(img, (3, 3), 0)
 
-    edges = cv2.Canny(blurred, threshold1=120, threshold2=240)
+    edges = cv2.Canny(blurred, threshold1=80, threshold2=240)
 
     contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
     mask = np.zeros(img.shape[:2], dtype=np.uint8)
+    mask1 = np.zeros(img.shape[:2], dtype=np.uint8)
     filtered_contours = []
     for contour in contours:
-        if cv2.contourArea(contour) >= 800:
+        if cv2.contourArea(contour) >= 10:
             filtered_contours.append(contour)
             cv2.drawContours(mask, [contour], -1, 255, thickness=cv2.FILLED)
 
-    # 定义结构元素
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
-    iterations = 3
+    # 闭合操作
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (7, 7))
+    iterations = 10
     closed = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel, iterations=iterations)
 
     # 在此处绘制所有过滤后的轮廓
     binary = closed.copy()
-    cv2.drawContours(binary, filtered_contours, -1, 255, thickness=cv2.FILLED)
+    contours1, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+    cv2.drawContours(mask1, contours1, -1, 255, thickness=cv2.FILLED)
     cv2.rectangle(binary, (border_left, border_top), (border_right, border_bottom), border_color,
                   border_thickness)
 
     roi_count = len(filtered_contours)
+    print("Number of Objects:", roi_count)
 
-    # print("Number of Objects:", roi_count)
-    # cv2.imshow("Image", image)
-    # cv2.imshow("Binary Image", binary)
-    # cv2.imshow("Edges", edges)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
+    # image_dict = {
+    #     "Image": image,
+    #     "Edges": edges,
+    #     "Mask": mask,
+    #     "Mask1": mask1,
+    #     "Binary Image": closed
+    # }
+    # display_images_with_titles(image_dict)
 
     return filtered_contours, binary, roi_count
 ############################## 2. 获取目标区域像素值 ##################################
@@ -108,24 +116,26 @@ def object_color_extraction(image):
     brightness = ROI_HSV_mean[2]
 
     color_image = show_object_color(ROI_BGR_mean)
-    # cv2.imshow("binary", binary)
-    # cv2.imshow("object_color_image", object_color_image)
-    # cv2.imshow("color", color_image)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
+    image_dict = {
+        "Binary": binary,
+        "Object_color_image": object_color_image,
+        "Color": color_image,
+    }
+    show_image(image_dict)
 
     return ROI(ROI_BGR_mean, ROI_HSV_mean, brightness, object_count)
 
 ####################################### 3. 用窗口展示像素值的颜色 #########################################
 def show_object_color(color=(0, 0, 0)):
     # 定义图像的宽度和高度
-    width, height = 640, 640
+    width, height = 640, 480
     # 创建一个纯色图像，大小为 width x height，数据类型为 uint8
     color_image = np.full((height, width, 3), color, dtype=np.uint8)
     return color_image
 
 ####################################### 4. 目标区域曲线拟合 ###############################################
 def object_curve_fitting(image):
+    # cv2.imshow('image', image)
     curve = namedtuple('curve', ['curve_image', 'curve_coordinates', 'curve_length'])
     filtered_contours, binary, roi_count = object_extraction(image)
     binary_image = binary.copy()
@@ -144,11 +154,12 @@ def object_curve_fitting(image):
     curve_coordinates = np.column_stack((nonzero_pixels[1], nonzero_pixels[0]))
     curve_length = cv2.arcLength(np.array(curve_coordinates), closed=False)  # 接受的参数为数组类型
 
-    # cv2.imshow('image', image)
-    # cv2.imshow('binary', binary_image)
-    # cv2.imshow('curve_img', curve_image)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
+    # image_dict = {
+    #     "Image": image,
+    #     'binary': binary_image,
+    #     'curve_img': curve_image,
+    # }
+    # display_images_with_titles(image_dict)
 
     return curve(curve_image, curve_coordinates, curve_length)
 
@@ -335,10 +346,10 @@ def analyze_image_with_rois(image, num_divisions=30, roi_size=20, brightness_thr
 
         # 计算平均颜色对应的CIE 1931 XYZ值
         mean_color_array = np.array(mean_color_rgb, dtype=np.float32)
-        mean_color_xyz = rgb_to_CIE1931(mean_color_array)
+        mean_color_xyz = rgb_to_cie_xy(mean_color_array)
 
         # 将结果添加到分析结果列表中
-        analysis_results.append({
+        analysis_result = {
             'roi_id': idx + 1,  # 添加ROI编号
             'mean_brightness': mean_brightness,
             'max_brightness': max_brightness,
@@ -346,9 +357,20 @@ def analyze_image_with_rois(image, num_divisions=30, roi_size=20, brightness_thr
             'ROI_color_RGB': mean_color_rgb,
             'low_brightness_ratio': low_brightness_ratio,
             'ROI_CIE1931_xyz': np.round(mean_color_xyz, 4).tolist()  # 添加CIE 1931 XYZ值
-        })
+        }
+        analysis_results.append(analysis_result)
+
+        # 打印每个ROI的分析结果
+        print(f"ROI {idx + 1} analysis result:", analysis_result)
+
+    # image_dict = {
+    #     "Imag": image,
+    #     "Image_with_roi": image_with_roi
+    # }
+    # display_images_with_titles(image_dict)
 
     return image_with_roi, analysis_results  # 返回带有绘制ROI的图像和分析结果
+
 ##################################### 10 细化/骨架提取算法 #######################################
 # 形态学骨架提取
 def morphological_skeleton(binary_image):
@@ -472,22 +494,126 @@ def binary_thinning(image):
 
     return thinned_array
 
-############################# RGB转CIE1931 ###################################
-def rgb_to_CIE1931(rgb):
-    # 将RGB归一化到[0, 1]
-    rgb_normalized = rgb / 255.0
+############################# 11 RGB转CIE1931 ###################################
+# def rgb_to_cie_xy(rgb):
+#     # 将RGB归一化到[0, 1]
+#     rgb_normalized = rgb / 255.0
+#
+#     # 定义RGB到XYZ的转换矩阵 (D65 illuminant)
+#     rgb_to_xyz_matrix = np.array([
+#         [0.4124564, 0.3575761, 0.1804375],
+#         [0.2126729, 0.7151522, 0.0721750],
+#         [0.0193339, 0.1191920, 0.9503041]
+#     ])
+#
+#     # 进行矩阵运算
+#     CIE1931_xyz = np.dot(rgb_normalized, rgb_to_xyz_matrix.T)
+#
+#     return CIE1931_xyz
 
-    # 定义RGB到XYZ的转换矩阵 (D65 illuminant)
-    rgb_to_xyz_matrix = np.array([
+def rgb_to_cie_xy(rgb):
+    # sRGB to Linear RGB(伽马矫正)
+    def linearize(c):
+        if c <= 0.04045:
+            return c / 12.92
+        else:
+            return ((c + 0.055) / 1.055) ** 2.4
+
+    # Apply gamma correction to each channel
+    linear_rgb = [linearize(c) for c in rgb]
+
+    # Conversion matrix from RGB to XYZ
+    mat = np.array([
         [0.4124564, 0.3575761, 0.1804375],
         [0.2126729, 0.7151522, 0.0721750],
         [0.0193339, 0.1191920, 0.9503041]
     ])
 
-    # 进行矩阵运算
-    CIE1931_xyz = np.dot(rgb_normalized, rgb_to_xyz_matrix.T)
+    # Convert linear RGB to XYZ
+    xyz = np.dot(mat, linear_rgb)
 
-    return CIE1931_xyz
+    # Extract X, Y, Z components
+    X, Y, Z = xyz
+
+    # Calculate x and y chromaticity coordinates
+    denom = X + Y + Z
+    if denom == 0:
+        return 0, 0
+    x = X / denom
+    y = Y / denom
+
+    return x, y
+
+############################## 12 展示需要展示的图像 #############################
+
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+def round_up_to_nearest_hundred(x):
+    return int(np.ceil(x / 100.0)) * 100
+
+def show_image(image_dict):
+    num_images = len(image_dict)
+    cols = int(np.ceil(np.sqrt(num_images)))  # 计算列数
+    rows = int(np.ceil(num_images / cols))  # 计算行数
+
+    fig, axes = plt.subplots(rows, cols, figsize=(cols * 5, rows * 5))  # 动态调整figsize
+
+    # 如果只有一个图像，axes不会是列表，因此将其转换为列表
+    if rows == 1 and cols == 1:
+        axes = np.array([axes])
+    elif rows == 1 or cols == 1:
+        axes = axes.flatten()
+
+    # 如果子图比图像多，隐藏多余的子图
+    for ax in axes.flat[num_images:]:
+        ax.axis('off')
+
+    for ax, (title, image) in zip(axes.flat, image_dict.items()):
+        ax.set_title(title, fontsize=14)  # 调整标题字体大小
+        if len(image.shape) == 2:  # 灰度图像
+            ax.imshow(image, cmap='gray', extent=[0, image.shape[1], 0, image.shape[0]])
+        else:  # 彩色图像
+            ax.imshow(image, extent=[0, image.shape[1], 0, image.shape[0]])
+
+        # 自动获取刻度范围，并取100的倍数
+        max_x = round_up_to_nearest_hundred(image.shape[1])
+        max_y = round_up_to_nearest_hundred(image.shape[0])
+
+        # 设置刻度范围
+        ax.set_xlim(0, max_x)
+        ax.set_ylim(0, max_y)  # 设置y轴从下到上
+
+        # 显示刻度
+        ax.set_xticks(np.arange(0, max_x + 1, step=100))
+        ax.set_yticks(np.arange(0, max_y + 1, step=100))
+
+        # 在坐标轴上标出图像尺寸
+        ax.set_xlabel(f'W * H: ({image.shape[1]}, {image.shape[0]})PX')
+        # ax.set_ylabel(f'Height: {image.shape[0]} px')
+
+        # 隐藏边框
+        for spine in ax.spines.values():
+            spine.set_visible(False)
+
+    plt.tight_layout(pad=2.0)  # 使用tight_layout优化间距，并设置pad值来减少间隔
+    plt.show()
+
+# if __name__ == "__main__":
+#     # 示例使用
+#     image_dict = {
+#         'Image 1': np.random.rand(100, 100),
+#         'Image 2': np.random.rand(100, 100),
+#         'Image 3': np.random.rand(100, 100),
+#         'Image 4': np.random.rand(100, 100),
+#         'Image 5': np.random.rand(100, 100),
+#         'Image 6': np.random.rand(100, 100),
+#         'Image 7': np.random.rand(100, 100)
+#     }
+#
+#     display_images_with_titles(image_dict)
+
 
 #################################################################################################
 if __name__ == '__main__':

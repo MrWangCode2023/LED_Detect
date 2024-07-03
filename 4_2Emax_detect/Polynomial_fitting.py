@@ -95,5 +95,3 @@ if __name__ == "__main__":
     max_degree = 3  # 设定最大阶数
 
     coefficients, poly_func = polynomial_fit(measured_luminance, measured_illuminance, max_degree)
-
-

@@ -1,7 +1,9 @@
+import math
 import cv2
 import numpy as np
-# from common.Common import object_extraction
-from common.Common import display_images_with_titles
+import matplotlib.pyplot as plt
+from fractions import Fraction
+from Show import display_images_with_titles
 
 def object_extraction(image):
     img = np.copy(image)
@@ -39,33 +41,30 @@ def object_extraction(image):
     binary = closed.copy()
     contours1, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     cv2.drawContours(mask1, contours1, -1, 255, thickness=cv2.FILLED)
-    cv2.rectangle(binary, (border_left, border_top), (border_right, border_bottom), border_color,
-                  border_thickness)
+    cv2.rectangle(binary, (border_left, border_top), (border_right, border_bottom), border_color, border_thickness)
 
+    # 计算每个前景目标的尺寸（外接矩形的长宽）
     roi_count = len(filtered_contours)
     print("Number of Objects:", roi_count)
+    object_sizes = []
+    for contour in filtered_contours:
+        x, y, w, h = cv2.boundingRect(contour)
+        object_sizes.append((w, h))
+        cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
-    print(f"Mask shape: {mask.shape}, dtype: {mask.dtype}")
-    print(f"Closed shape: {closed.shape}, dtype: {closed.dtype}")
+    # print("Object sizes (width, height):", object_sizes)
+    # print(f"Mask shape: {mask.shape}, dtype: {mask.dtype}")
+    # print(f"Closed shape: {closed.shape}, dtype: {closed.dtype}")
 
     image_dict = {
-        "Image": image,
-        "Edges": edges,
-        "Mask": mask,
-        "Mask1": mask1,
-        "Binary Image": closed
+        "Original Image": image,
+        # "Edges": edges,
+        # "Mask": mask,
+        # "Mask1": mask1,
+        # "Binary Image": closed,
+        "Bounding Boxes": img
     }
     display_images_with_titles(image_dict)
+    result = (filtered_contours, binary, roi_count, object_sizes)
 
-    return filtered_contours, binary, roi_count
-
-if __name__ == "__main__":
-    # 示例图像路径
-    image_path = "../../Data/LED_data/task2/02.bmp"  # 替换为实际图像路径
-
-    image = cv2.imread(image_path)
-    if image is None:
-        print("Image not found or unable to read")
-        exit()
-    contours, binary, ROI_count = object_extraction(image)
-
+    return object_sizes

@@ -1,25 +1,13 @@
 import cv2
 import numpy as np
-from common.Common import analyze_image_with_rois, draw_rectangle_roi_base_on_divisions
+from common.Common import draw_rectangle_roi_base_on_divisions, rgb_to_cie_xy
+from common.Common import display_images_with_titles
 
 
-def rgb_to_CIE1931(rgb):
-    # 将RGB归一化到[0, 1]
-    rgb_normalized = rgb / 255.0
+def homogeneity_detect(image, num_divisions=20, roi_size=20, brightness_threshold=50):
+    if image is None:
+        raise ValueError(f"图像加载失败: image is None")
 
-    # 定义RGB到XYZ的转换矩阵 (D65 illuminant)
-    rgb_to_xyz_matrix = np.array([
-        [0.4124564, 0.3575761, 0.1804375],
-        [0.2126729, 0.7151522, 0.0721750],
-        [0.0193339, 0.1191920, 0.9503041]
-    ])
-
-    # 进行矩阵运算
-    CIE1931_xyz = np.dot(rgb_normalized, rgb_to_xyz_matrix.T)
-
-    return CIE1931_xyz
-
-def analyze_image_with_rois(image, num_divisions=30, roi_size=20, brightness_threshold=50):
     # 调用绘制ROI的函数，获取带有绘制ROI的图像和ROI顶点坐标
     image_with_roi, rois = draw_rectangle_roi_base_on_divisions(image, num_divisions, roi_size)
 
@@ -72,41 +60,32 @@ def analyze_image_with_rois(image, num_divisions=30, roi_size=20, brightness_thr
 
         # 计算平均颜色对应的CIE 1931 XYZ值
         mean_color_array = np.array(mean_color_rgb, dtype=np.float32)
-        mean_color_xyz = rgb_to_CIE1931(mean_color_array)
+        mean_color_xyz = rgb_to_cie_xy(mean_color_array)
 
         # 将结果添加到分析结果列表中
-        analysis_results.append({
+        analysis_result = {
             'roi_id': idx + 1,  # 添加ROI编号
             'mean_brightness': mean_brightness,
             'max_brightness': max_brightness,
             'min_brightness': min_brightness,
             'ROI_color_RGB': mean_color_rgb,
             'low_brightness_ratio': low_brightness_ratio,
-            'ROI_CIE1931_xyz': np.round(mean_color_xyz, 4).tolist()  # 添加CIE 1931 XYZ值
-        })
+            'ROI_CIE1931_xy': np.round(mean_color_xyz, 4).tolist()  # 添加CIE 1931 XYZ值
+        }
+        analysis_results.append(analysis_result)
+
+        # 打印每个ROI的分析结果
+        print(f"ROI {idx + 1} analysis result:", analysis_result)
+
+    image_dict = {
+        "Imag": image,
+        "Image_with_roi": image_with_roi
+    }
+    display_images_with_titles(image_dict)
 
     return image_with_roi, analysis_results  # 返回带有绘制ROI的图像和分析结果
 
 
-
-def homogeneity_detect(image_path):
-    image = cv2.imread(image_path)
-    cv2.imshow("image", image)
-    if image is None:
-        raise ValueError(f"图像加载失败: {image_path}")
-
-    # 绘制ROI并分析
-    image_with_roi, analysis_results = analyze_image_with_rois(image, num_divisions=45, roi_size=20, brightness_threshold=50)
-
-    # 打印结果
-    for result in analysis_results:
-        print(result)
-    # 显示结果图像
-    cv2.imshow('Image with ROIS', image_with_roi)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows("q")
-
-
 if __name__ == '__main__':
-    image_path = '../../Data/LED_data/task1/task1_13.bmp'
-    homogeneity_detect(image_path)
+    image = cv2.imread(r'../../Data/LED_data/task2/02.bmp')
+    homogeneity_detect(image)
