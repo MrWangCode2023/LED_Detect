@@ -36,8 +36,6 @@ def point_cloud_segmentation(image, k=4):
 
     seg_image = cv2.cvtColor(point_segment_image, cv2.COLOR_GRAY2BGR)
 
-    cv2.imwrite("E:\\workspace\\Data\\LED_data\\task4\\30.png", seg_image)
-
     image_dict.update({
         # 'image_with_neighbors': image_with_neighbors,
         # "Points_mesh_image": points_mesh_image,
@@ -57,5 +55,5 @@ if __name__ == "__main__":
     # E:\\workspace\\Data\\LED_data\\task4\\17.png
     image = cv2.imread("E:\\workspace\\Data\\LED_data\\task4\\25.png")
     # 调用函数并显示结果
-    image_dict = point_cloud_segmentation(image, k=4)
+    point_segment_image = point_cloud_segmentation(image, k=4)
 
