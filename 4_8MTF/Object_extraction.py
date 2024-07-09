@@ -68,19 +68,22 @@ def object_extraction(image):
         # 绘制中心点
         # x, y = int(center[0]), int(center[1])
         object_positions.append((int(center[0]), int(center[1])))  # 使用最小外接矩形的中心坐标
-        cv2.putText(img, str(idx), (int(mid_ab[0]), int(mid_ab[1]) - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 0, 0), 1)
+        # cv2.putText(img, str(idx), (int(mid_ab[0]), int(mid_ab[1]) - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 0, 0), 1)
+        cv2.putText(img, str(idx), (int(center[0] - 8), int(center[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1)
 
     image_dict = {
         "Original": image,
         "Bboxes": img
     }
     show_image(image_dict)
-    result = (filtered_contours, binary, roi_count, object_sizes)
 
     # 确保对象位置为numpy数组
     object_positions = np.array(object_positions)
 
-    return object_positions, image_dict
+    result = (filtered_contours, binary, roi_count, object_sizes, object_positions)
+
+    # return object_positions, image_dict
+    return filtered_contours
 
 if __name__ == "__main__":
     image = cv2.imread("E:\\workspace\\Data\\LED_data\\task4\\34.png")

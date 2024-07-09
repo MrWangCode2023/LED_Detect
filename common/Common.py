@@ -3,14 +3,13 @@ import numpy as np
 from collections import namedtuple
 import time
 import cv2
-import numpy as np
 from skimage.morphology import skeletonize
 from skimage import img_as_ubyte
 from collections import namedtuple
 from scipy.interpolate import splprep, splev
 import matplotlib.pyplot as plt
 import SimpleITK as sitk
-import numpy as np
+
 import cv2
 import matplotlib.pyplot as plt
 
