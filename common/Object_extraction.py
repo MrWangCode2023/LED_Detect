@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 # from common.Common import object_extraction
-from common.Common import display_images_with_titles
+from common.Common import show_image
 
 def object_extraction(image):
     img = np.copy(image)
@@ -55,7 +55,7 @@ def object_extraction(image):
         "Mask1": mask1,
         "Binary Image": closed
     }
-    display_images_with_titles(image_dict)
+    show_image(image_dict)
 
     return filtered_contours, binary, roi_count
 

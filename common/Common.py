@@ -129,7 +129,8 @@ def show_object_color(color=(0, 0, 0)):
     # 定义图像的宽度和高度
     width, height = 640, 480
     # 创建一个纯色图像，大小为 width x height，数据类型为 uint8
-    color_image = np.full((height, width, 3), color, dtype=np.uint8)
+    color_image1 = np.full((height, width, 3), color, dtype=np.uint8)
+    color_image = cv2.cvtColor(color_image1, cv2.COLOR_RGB2BGR)
     return color_image
 
 ####################################### 4. 目标区域曲线拟合 ###############################################

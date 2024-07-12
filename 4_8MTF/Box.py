@@ -7,6 +7,8 @@ from Mid_point import mid_point
 
 
 def bbox(contours, image):
+    img1 = image.copy()
+    img = cv2.cvtColor(img1,cv2.COLOR_BGR2GRAY)
     line1_pixel_values = []
     line2_pixel_values = []
 
@@ -25,14 +27,14 @@ def bbox(contours, image):
         mid_bc = np.intp(mid_point(b, c))
         mid_da = np.intp(mid_point(d, a))
 
-        mask_line1 = np.zeros(image.shape[:2], dtype=np.uint8)
-        mask_line2 = np.zeros(image.shape[:2], dtype=np.uint8)
+        mask_line1 = np.zeros(img.shape[:2], dtype=np.uint8)
+        mask_line2 = np.zeros(img.shape[:2], dtype=np.uint8)
 
         cv2.line(mask_line1, pt1=mid_ab, pt2=mid_cd, color=(255, 255, 255), thickness=1, lineType=cv2.LINE_8)
         cv2.line(mask_line2, pt1=mid_bc, pt2=mid_da, color=(255, 255, 255), thickness=1, lineType=cv2.LINE_8)
 
-        line1_pixels = image[mask_line1 == 255]
-        line2_pixels = image[mask_line2 == 255]
+        line1_pixels = img[mask_line1 == 255]
+        line2_pixels = img[mask_line2 == 255]
 
         line1_pixel_values.append(line1_pixels)
         line2_pixel_values.append(line2_pixels)
@@ -41,6 +43,8 @@ def bbox(contours, image):
 
 
 def mbbox(contours, image):
+    img1 = image.copy()
+    img = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
     line1_pixel_values = []
     line2_pixel_values = []
 
@@ -55,14 +59,14 @@ def mbbox(contours, image):
         mid_cd = np.intp(mid_point(c, d))
         mid_da = np.intp(mid_point(d, a))
 
-        mask_line1 = np.zeros(image.shape[:2], dtype=np.uint8)
-        mask_line2 = np.zeros(image.shape[:2], dtype=np.uint8)
+        mask_line1 = np.zeros(img.shape[:2], dtype=np.uint8)
+        mask_line2 = np.zeros(img.shape[:2], dtype=np.uint8)
 
         cv2.line(mask_line1, pt1=mid_ab, pt2=mid_cd, color=(255, 255, 255), thickness=1, lineType=cv2.LINE_8)
         cv2.line(mask_line2, pt1=mid_bc, pt2=mid_da, color=(255, 255, 255), thickness=1, lineType=cv2.LINE_8)
 
-        line1_pixels = image[mask_line1 == 255]
-        line2_pixels = image[mask_line2 == 255]
+        line1_pixels = img[mask_line1 == 255]
+        line2_pixels = img[mask_line2 == 255]
 
         line1_pixel_values.append(line1_pixels)
         line2_pixel_values.append(line2_pixels)
