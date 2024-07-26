@@ -16,7 +16,7 @@ def main(image):
 
 if __name__ == "__main__":
     # 读取图像
-    image = cv2.imread("E:\\workspace\\Data\\LED_data\\task4\\25.png")
+    image = cv2.imread("E:\\workspace\\Data\\LED_data\\task4\\17.png")
     # 调用函数并显示结果
     main(image)
 

@@ -50,6 +50,6 @@ def draw_graph(image, contours):
     return result
 
 if __name__ == "__main__":
-    image = cv2.imread("E:\workspace\Data\LED_data\\4_9\\1.png")
+    image = cv2.imread("E:\workspace\Data\LED_data\\4_\\1.png")
     filtered_contours = object_extraction(image)
     result = draw_graph(image, filtered_contours)

@@ -253,10 +253,11 @@ def detect_LED_blinking_from_video(frame_queue, roi_size):
     cv2.destroyAllWindows()
 
 def main():
-    video_path = "E:\\workspace\\Data\\LED_data\\task2\\Flow_mode1"  # 替换为您的视频文件路径
+    # video_path = "E:\\workspace\\Data\\LED_data\\task2\\Flow_mode1"  # 替换为您的视频文件路径
+    video_path = "E:\workspace\Data\LED_data\\task2\\4.avi"  # 替换为您的视频文件路径
 
     # 创建帧队列
-    frame_queue = queue.Queue(maxsize=100)
+    frame_queue = queue.Queue(maxsize=100000)
 
     # 启动捕获和检测线程
     capture_thread = threading.Thread(target=capture_frames_from_video, args=(video_path, frame_queue))

@@ -60,12 +60,12 @@ def draw_divided_points(image, points_and_angles):
 
 if __name__ == '__main__':
     # 读取图像并计算曲线长度及像素坐标
-    image = cv2.imread("../../Data/LED_data/task2/02.bmp")
+    image = cv2.imread("../../Data/LED_data/task1/task1_13.bmp")
     # image_path = "../../Data/LED_data/task1/task1_13.jpg"  # 替换为实际图像路径
     curve = object_curve_fitting(image)  # (curve_image, curve_coordinates, curve_length)
 
     # 计算等分点坐标及对应角度
-    points_and_angles = curve_division(curve.curve_length, curve.curve_coordinates, 50)
+    points_and_angles = curve_division(curve.curve_length, curve.fitted_contour, 50)
 
     print("分割点个数：", len(points_and_angles))
     print("分割点坐标和角度:", points_and_angles)

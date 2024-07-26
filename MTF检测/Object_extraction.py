@@ -83,5 +83,5 @@ def object_extraction(image):
     return object_positions, image_dict
 
 if __name__ == "__main__":
-    image = cv2.imread("E:\\workspace\\Data\\LED_data\\task4\\34.png")
+    image = cv2.imread("E:\\workspace\\Data\\LED_data\\task4\\33.png")
     object_positions, image_dict = object_extraction(image)

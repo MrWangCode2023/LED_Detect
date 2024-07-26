@@ -18,7 +18,7 @@ def draw_circle_roi_base_on_points(image, num_divisions=50, roi_size=20):
     - image_with_roi: Image with the ROI circles drawn
     """
     curve = object_curve_fitting(image)  # 获取曲线数据
-    points_and_angles = curve_division(curve.curve_length, curve.curve_coordinates, num_divisions)
+    points_and_angles = curve_division(curve.curve_length, curve.fitted_contour, num_divisions)
     image_with_roi = image.copy()
     radius = roi_size // 2  # 半径是直径的一半
 
@@ -44,7 +44,7 @@ def draw_rectangle_roi_base_on_points(image, num_divisions=50, roi_size=20):
     - rois: List of extracted ROI regions
     """
     curve = object_curve_fitting(image)  # 获取曲线数据
-    points_and_angles = curve_division(curve.curve_length, curve.curve_coordinates, num_divisions)
+    points_and_angles = curve_division(curve.curve_length, curve.fitted_contour, num_divisions)
     image_with_roi = image.copy()
     rois = []
 

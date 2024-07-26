@@ -26,10 +26,10 @@ if __name__ == "__main__":
     image = cv2.imread('../../Data/LED_data/task1/task1_4.bmp')
     curve = object_curve_fitting(image)
 
-    if curve.curve_coordinates is not None:
+    if curve.fitted_contour is not None:
         is_continuous, is_uniform = is_continuous_and_uniform(curve.curve_image)
         print(f"Curve Image: {curve.curve_image is not None}")
-        print(f"Curve Coordinates: {curve.curve_coordinates is not None}")
+        print(f"Curve Coordinates: {curve.fitted_contour is not None}")
         print(f"Curve Length: {curve.curve_length}")
         print(f"Is Continuous: {is_continuous}")
         print(f"Is Uniform: {is_uniform}")

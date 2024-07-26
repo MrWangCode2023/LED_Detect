@@ -1,74 +1,9 @@
 import cv2
-import numpy as np
 from matplotlib import pyplot as plt
-
-
-def capture_brightness(image, points):
-    """
-    Capture the brightness at specific points in the image.
-
-    :param image: Input image.
-    :param points: List of points (x, y) where brightness needs to be measured.
-    :return: List of brightness values at the specified points.
-    """
-    brightness_values = []
-    for (x, y) in points:
-        # Ensure the point is within image bounds
-        x = min(max(x, 0), image.shape[1] - 1)
-        y = min(max(y, 0), image.shape[0] - 1)
-        brightness_values.append(image[y, x])
-    return brightness_values
-
-
-def calculate_contrast(Lwhite, Ldark):
-    """
-    Calculate contrast given the brightness values for white and black images.
-
-    :param Lwhite: List of brightness values for the white image.
-    :param Ldark: List of brightness values for the black image.
-    :return: List of contrast values.
-    """
-    contrast_values = []
-    for lw, ld in zip(Lwhite, Ldark):
-        if ld == 0:
-            contrast_values.append(np.inf)  # Avoid division by zero
-        else:
-            contrast_values.append((lw / ld) * 100)
-    return contrast_values
-
-
-def generate_relative_points(margin=0.1, grid_size=5):
-    """
-    Generate relative points based on the image dimensions H and V.
-
-    :param margin: Margin as a fraction of image dimensions (default is 0.1 for 10% margin).
-    :param grid_size: The size of the grid (default is 5 for 5x5 grid).
-    :return: List of points (x, y) in relative positions.
-    """
-    points = []
-    step_x = (1 - 2 * margin) / (grid_size - 1)
-    step_y = (1 - 2 * margin) / (grid_size - 1)
-
-    for i in range(grid_size):
-        for j in range(grid_size):
-            x = margin + i * step_x
-            y = margin + j * step_y
-            points.append((round(x, 2), round(y, 2)))  # 保留两位小数
-
-    return points
-
-
-def convert_relative_to_absolute(points, width, height):
-    """
-    Convert relative points to absolute points based on image dimensions.
-
-    :param points: List of relative points (x, y).
-    :param width: Width of the image.
-    :param height: Height of the image.
-    :return: List of absolute points (x, y).
-    """
-    absolute_points = [(int(x * width), int(y * height)) for x, y in points]
-    return absolute_points
+from capture_brightness import capture_brightness
+from calculate_contrast import calculate_contrast
+from generate_relative_points import generate_relative_points
+from convert_relative_to_absolute import convert_relative_to_absolute
 
 
 def contrast_detect(black_image, white_image):

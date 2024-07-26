@@ -1,8 +1,99 @@
+from collections import namedtuple
+
 import cv2
 import numpy as np
-from common.Common import draw_rectangle_roi_base_on_divisions, rgb_to_cie_xy
-from common.Common import display_images_with_titles
+from skimage.util import img_as_ubyte
 
+from common.Common import draw_rectangle_roi_base_on_divisions, rgb_to_cie_xy, object_extraction, skeletonize, curve_division
+from Show import show_image
+
+
+def object_curve_fitting(image):
+    # cv2.imshow('image', image)
+    curve = namedtuple('curve', ['curve_image', 'curve_coordinates', 'curve_length'])
+    filtered_contours, binary, roi_count = object_extraction(image)
+    binary_image = binary.copy()
+
+    # 细化算法API
+    skeleton_image = cv2.ximgproc.thinning(binary_image)  # 只有一个像素的线
+    skeleton = skeletonize(skeleton_image // 255)  # Convert to boolean and skeletonize
+    curve_image = img_as_ubyte(skeleton)
+
+    nonzero_pixels = np.nonzero(curve_image)
+
+    # 如果没有检测到曲线，返回None
+    if len(nonzero_pixels[0]) == 0:
+        return curve(None, None, None)
+
+    curve_coordinates = np.column_stack((nonzero_pixels[1], nonzero_pixels[0]))
+    curve_length = cv2.arcLength(np.array(curve_coordinates), closed=False)  # 接受的参数为数组类型
+
+    image_dict = {
+        "Image": image,
+        'binary': binary_image,
+        'curve_img': curve_image,
+    }
+    show_image(image_dict)
+
+    return curve(curve_image, curve_coordinates, curve_length)
+
+def draw_rectangle_roi_base_on_divisions(image, num_divisions=50, roi_size=20):
+    curve = object_curve_fitting(image)  # 获取曲线数据
+
+    # 如果没有检测到曲线，直接返回原始图像和空的ROI列表
+    if curve is None:
+        return image.copy(), []
+
+    points_and_angles = curve_division(curve.curve_length, curve.curve_coordinates, num_divisions)
+    image_with_roi = image.copy()
+    half_size = roi_size // 2
+    rois = []  # 用于存储每个ROI的顶点坐标
+
+    for (point, angle) in points_and_angles:
+        center = (int(point[0]), int(point[1]))
+        size = (roi_size, roi_size)
+
+        # 绘制旋转矩形
+        rect = (center, size, angle)
+        box = cv2.boxPoints(rect)  # 计算出旋转矩形坐标顶点
+        box = np.intp(box)
+        cv2.drawContours(image_with_roi, [box], 0, (255, 255, 255), 2)
+        rois.append(box.tolist())  # 将ROI顶点坐标添加到列表中
+
+    return image_with_roi, rois  # 返回绘制ROI的图像和roi顶点坐标
+
+def rgb_to_cie_xy(rgb):
+    # sRGB to Linear RGB(伽马矫正)
+    def linearize(c):
+        if c <= 0.04045:
+            return c / 12.92
+        else:
+            return ((c + 0.055) / 1.055) ** 2.4
+
+    # Apply gamma correction to each channel
+    linear_rgb = [linearize(c) for c in rgb]
+
+    # Conversion matrix from RGB to XYZ
+    mat = np.array([
+        [0.4124564, 0.3575761, 0.1804375],
+        [0.2126729, 0.7151522, 0.0721750],
+        [0.0193339, 0.1191920, 0.9503041]
+    ])
+
+    # Convert linear RGB to XYZ
+    xyz = np.dot(mat, linear_rgb)
+
+    # Extract X, Y, Z components
+    X, Y, Z = xyz
+
+    # Calculate x and y chromaticity coordinates
+    denom = X + Y + Z
+    if denom == 0:
+        return 0, 0
+    x = X / denom
+    y = Y / denom
+
+    return x, y
 
 def homogeneity_detect(image, num_divisions=20, roi_size=20, brightness_threshold=50):
     if image is None:
@@ -81,11 +172,11 @@ def homogeneity_detect(image, num_divisions=20, roi_size=20, brightness_threshol
         "Imag": image,
         "Image_with_roi": image_with_roi
     }
-    display_images_with_titles(image_dict)
+    show_image(image_dict)
 
     return image_with_roi, analysis_results  # 返回带有绘制ROI的图像和分析结果
 
 
 if __name__ == '__main__':
-    image = cv2.imread(r'../../Data/LED_data/task2/02.bmp')
-    homogeneity_detect(image)
+    image = cv2.imread(r'../../Data/LED_data/task1/task1_13.bmp')
+    homogeneity_detect(image, num_divisions=40, roi_size=20, brightness_threshold=50)

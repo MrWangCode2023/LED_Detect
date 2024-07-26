@@ -249,5 +249,5 @@ def height2low_detect(video_path, low_brightness_threshold=-10, high_brightness_
         print("低亮亮度均值：", average_low_brightness)
 
 if __name__ == "__main__":
-    video_path = r"E:\workspace\Data\LED_data\task1\task1_1mp4.avi"  # 请替换为实际存在的视频文件的绝对路径
+    video_path = r"E:\workspace\Data\LED_data\task1\1.avi"  # 请替换为实际存在的视频文件的绝对路径
     height2low_detect(video_path)

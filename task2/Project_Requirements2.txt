@@ -5,9 +5,6 @@
 
 输出：{亮灯顺序（ROI）编号， 没有量的的区域(ROI编号)， 全部灯亮的总时间（当没有没有新的ROI判断为亮的时候为结束）}
 
-
-单帧数据：{'roi_id': 3, 'mean_brightness': 46.76, 'max_brightness': 59, 'min_brightness': 9, 'mean_color': [251, 30, 0], 'low_brightness_ratio': 0.53}
-
 总输出：
 整个检测过程中ROI亮灯的顺序：记录每一帧相对于前一帧新增的亮灯ROI编号。
 整个检测过程中从来都没有亮过的ROI编号

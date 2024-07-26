@@ -129,8 +129,8 @@ def show_object_color(color=(0, 0, 0)):
     # 定义图像的宽度和高度
     width, height = 640, 480
     # 创建一个纯色图像，大小为 width x height，数据类型为 uint8
-    color_image1 = np.full((height, width, 3), color, dtype=np.uint8)
-    color_image = cv2.cvtColor(color_image1, cv2.COLOR_RGB2BGR)
+    color_image = np.full((height, width, 3), color, dtype=np.uint8)
+    # color_image = cv2.cvtColor(color_image1, cv2.COLOR_RGB2BGR)
     return color_image
 
 ####################################### 4. 目标区域曲线拟合 ###############################################
@@ -154,12 +154,12 @@ def object_curve_fitting(image):
     curve_coordinates = np.column_stack((nonzero_pixels[1], nonzero_pixels[0]))
     curve_length = cv2.arcLength(np.array(curve_coordinates), closed=False)  # 接受的参数为数组类型
 
-    # image_dict = {
-    #     "Image": image,
-    #     'binary': binary_image,
-    #     'curve_img': curve_image,
-    # }
-    # display_images_with_titles(image_dict)
+    image_dict = {
+        "Image": image,
+        'binary': binary_image,
+        'curve_img': curve_image,
+    }
+    # show_image(image_dict)
 
     return curve(curve_image, curve_coordinates, curve_length)
 
@@ -550,6 +550,12 @@ def rgb_to_cie_xy(rgb):
 import matplotlib.pyplot as plt
 import numpy as np
 
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+# # from Object_extraction import object_extraction
+# from common.Common import show_object_color
+
 def round_up_to_nearest_hundred(x):
     return int(np.ceil(x / 100.0)) * 100
 
@@ -575,7 +581,8 @@ def show_image(image_dict):
         if len(image.shape) == 2:  # 灰度图像
             ax.imshow(image, cmap='gray', extent=[0, image.shape[1], 0, image.shape[0]])
         else:  # 彩色图像
-            ax.imshow(image, extent=[0, image.shape[1], 0, image.shape[0]])
+            image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            ax.imshow(image_rgb, extent=[0, image.shape[1], 0, image.shape[0]])
 
         # 自动获取刻度范围，并取100的倍数
         max_x = round_up_to_nearest_hundred(image.shape[1])
@@ -599,6 +606,10 @@ def show_image(image_dict):
 
     plt.tight_layout(pad=2.0)  # 使用tight_layout优化间距，并设置pad值来减少间隔
     plt.show()
+
+
+
+
 
 # if __name__ == "__main__":
 #     # 示例使用

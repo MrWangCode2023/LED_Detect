@@ -26,7 +26,7 @@ def object_extraction(image):
     mask1 = np.zeros(img.shape[:2], dtype=np.uint8)
     filtered_contours = []
     for contour in contours:
-        if cv2.contourArea(contour) >= 10:
+        if cv2.contourArea(contour) >= 500:
             filtered_contours.append(contour)
             cv2.drawContours(mask, [contour], -1, 255, thickness=cv2.FILLED)
 
@@ -51,9 +51,9 @@ def object_extraction(image):
     image_dict = {
         "Image": image,
         "Edges": edges,
-        "Mask": mask,
-        "Mask1": mask1,
-        "Binary Image": closed
+        # "Mask": mask,
+        # "Mask1": mask1,
+        # "Binary Image": closed
     }
     show_image(image_dict)
 
@@ -61,7 +61,7 @@ def object_extraction(image):
 
 if __name__ == "__main__":
     # 示例图像路径
-    image_path = "../../Data/LED_data/task2/02.bmp"  # 替换为实际图像路径
+    image_path = "../../Data/LED_data/task1/task1_13.bmp"  # 替换为实际图像路径
 
     image = cv2.imread(image_path)
     if image is None:

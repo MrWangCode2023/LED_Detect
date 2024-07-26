@@ -12,6 +12,7 @@ def app_m(image, num=1):
         print("Error: Image not found or cannot be read.")
         return
 
+    # 1 检测到区域
     contours = object_extraction(image)
 
     # 检查是否找到了轮廓
