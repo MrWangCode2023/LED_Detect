@@ -13,7 +13,9 @@ def t7LoadRoisFromJson(roisPath):
     """
     with open(roisPath, 'r') as f:
         boxes = json.load(f)
-    return boxes
+        roi_nums = len(boxes)
+
+    return boxes, roi_nums
 
 
 if __name__ == "__main__":

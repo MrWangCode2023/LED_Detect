@@ -17,9 +17,9 @@ def templateRois(image):
     contours = t1Contours(image)
     # curve = t2ThinCurve(image, contours[0])
     curve = t3FittedCurve(image, contours[0])
-    equidistant_points_angels = t4EqualizationPointsAndAngels(image, curve, 18)
+    equidistant_points_angels = t4EqualizationPointsAndAngels(image, curve, 30)
     for pt_agl in equidistant_points_angels:
-        roi = t5point2RotatedRoi(pt_agl, diameter=17)
+        roi = t5point2RotatedRoi(pt_agl, diameter=25)
         rois.append(roi)
 
         # 绘制roi

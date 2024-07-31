@@ -3,7 +3,7 @@ import numpy as np
 from ColorConverter import ColorConverter
 
 
-def FroiPixelAnalysis(roi_image, number, darkThreshold=50):
+def F2roiPixelAnalysis(roi_image, darkThreshold=50):
     """
     计算ROI区域的R、G、B均值
 
@@ -13,13 +13,14 @@ def FroiPixelAnalysis(roi_image, number, darkThreshold=50):
     Returns:
         mean_rgb: (R_mean, G_mean, B_mean) 的元组。如果没有有效像素，则返回 (0, 0, 0)。
     """
-    result = [number]
-    result1 = [number]
+    tag, r, g, b, h, s, v = 0, 0, 0, 0, 0, 0, 0
+
+    # result = [number]
+    result = []
 
     # 确保roi_image不是空的
     if roi_image is None or roi_image.size == 0:
-        rgb, hsv, tag = (0, 0, 0), (0, 0, 0), 0
-        result.extend([rgb, hsv, tag])
+        result.extend([tag, r, g, b, h, s, v])
 
         return result
 
@@ -29,8 +30,7 @@ def FroiPixelAnalysis(roi_image, number, darkThreshold=50):
     num_pixels = np.sum(non_zero_mask)
 
     if num_pixels == 0:
-        rgb, hsv, tag = (0, 0, 0), (0, 0, 0), 0
-        result.extend([rgb, hsv, tag])
+        result.extend([tag, r, g, b, h, s, v])
 
         return result  # 如果没有有效像素，返回零均值
 
@@ -46,26 +46,19 @@ def FroiPixelAnalysis(roi_image, number, darkThreshold=50):
 
     # 计算RGB值
     rgb = (r, g, b)
-    result.append(rgb)
-    # print(f"ROI区域的R均值、G均值、B均值: {result}\n")
 
     # 计算HSV值
     converter = ColorConverter()
-    hsv = converter.rgb2hsv(rgb)
-    h, s, v = hsv
-    result.append(hsv)
-    # print(f"ROI区域的H均值、S均值、V均值: {result}\n")
+    h, s, v = converter.rgb2hsv(rgb)
 
     # 判断当前roi是否为暗
-    tag = 1 if hsv[0] > darkThreshold else 0
-    result.append(tag)
-    result1.extend([r, g, b, h, s, v, tag])
-    result2 = np.array([r, g, b, hsv[0], hsv[1], hsv[2], tag], dtype=np.float32)
+    tag = 1 if h > darkThreshold else 0
 
-    # print(f"result:{result}")
-    # print(f"result1:{result1}")
-    # print(f"result2:{result2}")
-    #result[编号， rgb, hsv, 亮暗标签]
+    # tag, r, g, b, h, s, v = \
+    #     round(tag, 0), round(r, 4), round(g, 4), round(b, 4), round(h, 4), round(s, 4), round(v, 4)
+
+    result.extend([tag, r, g, b, h, s, v])
+
     return result
 
 
@@ -78,7 +71,7 @@ if __name__ == "__main__":
     roi = [(50, 50), (150, 50), (150, 150), (50, 150)]  # 设定四边形顶点
     roi_image = F1RoiPixelExtract(image, roi)
 
-    FroiPixelAnalysis(roi_image, 0)
+    F2roiPixelAnalysis(roi_image, 0)
 
     # cv2.imshow("roi_image", roi_image)
     # cv2.waitKey(0)
