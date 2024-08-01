@@ -1,6 +1,6 @@
 import numpy as np
 
-def curvatureCalculate(points):
+def t2_curvatureCalculate(points):
     """
     计算每个点的曲率，并返回最大曲率的点。
     :param points: 形状为 (N, 2) 的数组，其中 N 是点的数量，每个点的坐标为 (x, y)。
@@ -47,4 +47,9 @@ def curvatureCalculate(points):
     # max_points_curvatures = zip(max_curvature_points, max_curvatures)
     # print(f"max_points_curvatures:{max_points_curvatures[0]}")
 
-    return curvatures, max_curvature_points, max_curvatures  # 返回曲率值列表、最大曲率的点和对应的曲率值
+    # 找到三个最大曲率点中y坐标值最大的点(下方的拐点)
+    resultpoint = max(max_curvature_points, key=lambda p: p[0])  # p[0]是y坐标
+
+    # return curvatures, max_curvature_points, max_curvatures  # 返回曲率值列表、最大曲率的点和对应的曲率值
+
+    return resultpoint

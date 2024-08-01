@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 
-def edges(gray):
+def t1_edges(gray):
     """
     在指定的区域内进行边缘提取。
 
