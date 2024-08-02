@@ -17,7 +17,7 @@ def step2(VideoPath):
     reader_thread = threading.Thread(target=video2Queue, args=(video_path, frame_queue, stop_event))
     reader_thread.start()
 
-    # 启动帧处理线程
+    # 启动队列处理线程
     processor_thread = threading.Thread(target=F4FramesQueueProcess, args=(frame_queue, stop_event))
     processor_thread.start()
 

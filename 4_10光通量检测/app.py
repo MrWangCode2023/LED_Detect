@@ -5,11 +5,14 @@ from t2_curvatureCalculate import t2_curvatureCalculate
 from t3_getLeftEdge import t3_getLeftEdgePoints
 from t4_left_edge_mid_point import t4_left_edge_mid_point
 from coordinateFitCurve import fit_polynomial
-from t6_newCoordinateSystem import t6_transformCoordinatesSystem
+from t6_transformCoordinatesSystem import t6_transformCoordinatesSystem
 from t5_drawCoordinateSystem import t5_drawCoordinateSystem
+from t7_mappingMatrix import T7_mappingMatrix
+from t8_coordinateTransformation import T8_transform_point
+from t9_luminance2illuminance import t9_luminance2illuminance
 
 
-def app(image):
+def app(image, points):
     gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)  # 将图像转换为灰度图
 
     # 1 边缘处理，获得边缘图像和边缘坐标
@@ -31,16 +34,21 @@ def app(image):
 
 
     # 6 建立新直角坐标系映射关系
-    transformed_points, x_axis_vector_normalized, y_axis_vector = t6_transformCoordinatesSystem(p1, p0, points=None)
+    # transformed_points, x_axis_vector_normalized, y_axis_vector = t6_transformCoordinatesSystem(p1, p0, points=None)
 
-    # 在原图中显示坐标系
+    # 7 建立两个坐标系的映射关系矩阵
+    T, T_inv = T7_mappingMatrix(p0, p1)
+
+    # 8 进行坐标映射
+    for point in points:
+        image_coordinates = T8_transform_point(point, T_inv)
+        x, y = image_coordinates
+        point_brightness = gray_image[y, x]
+
+        # 9 通过亮度值计算照度值
+        illuminance = t9_luminance2illuminance(point_brightness)
 
 
-    # 打印最大曲率点及其值
-    # for i in range(3):
-        # print(f"Max Curvature Point {i + 1}: {max_points[i]}, Curvature Value: {max_curvatures[i]:.4f}")
-
-    # print(f"Result Point: {left_edge_points}")
 
     # 可视化最大曲率点
     # 创建一个空白图像
