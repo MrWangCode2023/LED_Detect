@@ -48,7 +48,7 @@ def t2_curvatureCalculate(points):
     # print(f"max_points_curvatures:{max_points_curvatures[0]}")
 
     # 找到三个最大曲率点中y坐标值最大的点(下方的拐点)
-    resultpoint = max(max_curvature_points, key=lambda p: p[0])  # p[0]是y坐标
+    resultpoint = max(max_curvature_points, key=lambda p: p[1])  # p[1]是y坐标
 
     # return curvatures, max_curvature_points, max_curvatures  # 返回曲率值列表、最大曲率的点和对应的曲率值
 

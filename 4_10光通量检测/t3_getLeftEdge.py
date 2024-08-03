@@ -11,7 +11,7 @@ def t3_getLeftEdgePoints(edge_points, p):
 
     # 遍历边缘点，找到所有左侧的点
     for point in edge_points:
-        if point[1] < p[1]:  # 判断 x 坐标是否小于分界点的 x 坐标
+        if point[0] < p[0]:  # 判断 x 坐标是否小于分界点的 x 坐标
             left_points.append(point)
 
     return np.array(left_points)

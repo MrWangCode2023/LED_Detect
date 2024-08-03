@@ -2,13 +2,13 @@ import cv2
 import numpy as np
 
 
-def t5_drawCoordinateSystem(image, point0=[0, 0], point1=[0, 0]):
+def t5_drawCoordinateSystem(image, p0=[0, 0], p1=[0, 0]):
     # po:[204 223]
     # p1:[204, 170]
 
     # 定义 p0 和 p1
-    p0 = np.array([point0[1], point0[0]])  # 替换为实际的 p0 坐标
-    p1 = np.array([point1[1], point1[0]])  # 替换为实际的 p1 坐标
+    p0 = np.array(p0)  # 替换为实际的 p0 坐标
+    p1 = np.array(p1)  # 替换为实际的 p1 坐标
 
     # 计算向量
     vector = p0 - p1

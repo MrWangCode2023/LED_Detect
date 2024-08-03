@@ -10,7 +10,7 @@ def t1_edges(gray):
     :return: 边缘提取后的图像和边缘坐标。
     """
     H, W = gray.shape  # 获取图像的高度和宽度
-    box_cx, box_cy, box_H, box_w = [0.5, 0.5, 0.5, 0.5]
+    box_cx, box_cy, box_H, box_w = [0.5, 0.5, 0.8, 0.5]
 
     # box区域
     center_x, center_y = box_cx * W, box_cy * H  # 计算中心点坐标
@@ -33,6 +33,7 @@ def t1_edges(gray):
     edges_image[y:y + int(h), x:x + int(w)] = edge
 
     # 提取边缘坐标
-    edge_coordinates = np.argwhere(edges_image > 0)  # 找到所有非零像素的坐标
+    edge_coordinates1 = np.argwhere(edges_image > 0)  # 找到所有非零像素的坐标
+    edge_coordinates = edge_coordinates1[:, [1, 0]]  # 转换为 (x, y)
 
-    return edges_image, edge_coordinates
+    return edge_coordinates, edges_image

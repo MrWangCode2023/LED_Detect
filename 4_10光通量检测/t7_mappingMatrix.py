@@ -46,27 +46,21 @@ def T7_mappingMatrix(P0, P1):
 
     T_inv = np.linalg.inv(T)
 
-    # 打印调试信息
-    # print(f"A_vector: {A_vector}")
-    # print(f"B_vector: {B_vector}")
-    # print(f"Rotation angle (theta): {theta} (radians)")
-    # print(f"Translation vector (t): {t}")
-
     return T, T_inv
 
 
 if __name__ == "__main__":
-    from t8_coordinateTransformation import T8_transform_point
+    from t8_coordinateTransformation import T8_coordinateTransformation
 
     A1 = [258, 363]
     A2 = [261, 261]
 
     T, T_inv = T7_mappingMatrix(A1, A2)
 
-    transformed_N0 = T8_transform_point(A1, T)
+    transformed_N0 = T8_coordinateTransformation(A1, T)
     print(f"P0: {A1} 被转换到新坐标系的 N0: {transformed_N0}")
 
-    transformed_N1 = T8_transform_point(A2, T)
+    transformed_N1 = T8_coordinateTransformation(A2, T)
     print(f"P1: {A2} 被转换到新坐标系的 N1: {transformed_N1}")
 
     expected_N0 = np.array([0, 0])
