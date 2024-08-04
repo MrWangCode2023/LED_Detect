@@ -30,7 +30,7 @@ def T7_mappingMatrix(P0, P1):
     # 创建 Y 轴翻转矩阵
     M_flip = np.array([
         [1, 0],
-        [0, -1]
+        [0, 1]
     ])
 
     # 组合变换：先翻转 Y 轴，然后旋转

@@ -2,6 +2,15 @@ import numpy as np
 
 
 def T8_coordinateTransformation(point, transformation_matrix):
+    """
+
+    Args:
+        point: 需要进行坐标系转换的坐标
+        transformation_matrix: 坐标系转换矩阵
+
+    Returns:
+        result: 转换后的坐标
+    """
     # 验证 transformation_matrix 是否为 3x3 矩阵
     if transformation_matrix.shape != (3, 3):
         raise ValueError("Transformation matrix must be a 3x3 matrix")
@@ -12,9 +21,10 @@ def T8_coordinateTransformation(point, transformation_matrix):
 
     # 进行矩阵乘法
     transformed_point = transformation_matrix @ point_homogeneous
+    result = transformed_point[:2]
 
     # 只返回前两个坐标
-    return transformed_point[:2]
+    return result
 
 
 # 示例用法

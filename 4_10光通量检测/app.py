@@ -66,8 +66,9 @@ def app(image, points):
 
 if __name__ == "__main__":
     # 示例使用
-    image = cv2.imread('../../projectData/LED_data/task4/2.bmp')
+    # image = cv2.imread('../../projectData/LED_data/task4/2.bmp')
     # image = cv2.imread('../../projectData/LED_data/task4/6.jpg')
+    image = cv2.imread('../../../projectData/LED_data/task4/2.bmp')
     illuminances, show_img = app(image, points=[[0, 0]])
 
     # 打印结果
