@@ -20,8 +20,4 @@ def t9_luminance2illuminance(luminance, coefficients=None):
         illuminance = np.polyval(coefficients, luminance)
         # print(f"1:{illuminance1}  2:{illuminance}")
 
-    # 打印函数
-    degree = len(coefficients) - 1  # 计算多项式的阶数
-    function_str = "f(x) = " + " + ".join(f"{coef:.2f}x^{degree - i}" for i, coef in enumerate(coefficients))
-    print(function_str)
     return illuminance

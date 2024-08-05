@@ -48,6 +48,11 @@ def detect(image, points, T, T_inv, coefficients, p0, p1):
         cv2.putText(show_img, f"{illuminance:.2f}", (x + 5, y - 5),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 255, 0), 1)  # 显示照度值
 
+    # 打印函数
+    degree = len(coefficients) - 1  # 计算多项式的阶数
+    function_str = "f(x) = " + " + ".join(f"{coef:.2f}x^{degree - i}" for i, coef in enumerate(coefficients))
+    print(function_str)
+
     # 可视化
     # 5 在原图上绘制坐标系
     t5_drawCoordinateSystem(show_img, p0, p1)
@@ -76,7 +81,12 @@ if __name__ == "__main__":
         [50, 60],
         [100, 120],
         [150, 180],
-        [200, 220]
+        [200, 220],
+        [-10, -20],
+        [-50, -60],
+        [-100, -120],
+        [-150, -180],
+        [-200, -220],
     ]
 
     # 从 JSON 文件加载参数

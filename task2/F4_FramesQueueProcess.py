@@ -7,26 +7,15 @@ import cv2
 import queue
 import time
 
-def F4FramesQueueProcess(frame_queue, stop_event):
-    """
-    处理队列中的帧
-
-    Args:
-        frame_queue: 存储视频帧的队列。
-        stop_event: 停止事件，用于停止帧处理线程。
-
-    Returns:
-
-    """
+def F4FramesQueueProcess(frame_queue, stop_event, results_queue):
     framesDatas = []
     count = 0
     while not stop_event.is_set() or not frame_queue.empty():
         try:
             frame = frame_queue.get(timeout=1)
 
-            # # 帧数记录
+            # 帧数记录
             count += 1
-            # print(f"count:{count}")
 
             # 处理帧
             frameData, resultShow = F3FrameProcess(frame)
@@ -55,7 +44,8 @@ def F4FramesQueueProcess(frame_queue, stop_event):
     print(f"framesDatas:{results}")
     print("帧处理线程结束")
 
-    return results
+    # 将结果放入结果队列
+    results_queue.put(results)
 
 
 if __name__ == "__main__":

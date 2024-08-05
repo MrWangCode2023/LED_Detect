@@ -11,61 +11,41 @@ from t10_saveParameter2Json import t10_saveParameter2Json
 
 
 def A0_HV2IlluminanceMapping(image, point_illuminances, degree=2):
-    """
-    拟合亮度值与照度值之间的映射关系。
-
-    Args:
-        image: 输入图像
-        point_illuminances: [[x坐标， y坐标， 照度值], ...]
-        degree: 拟合多项式的阶数
-
-    Returns:
-        T: 坐标系映射矩阵
-        T_inv: 逆映射矩阵
-        coefficients: 拟合的多项式系数
-        p0: 原点
-        p1: 边缘均值点
-    """
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
     # 1. 建立坐标系变换映射矩阵
     edge_coordinates, edges_image = t1_edges(gray)
 
+    # 检查 edge_coordinates 是否非空
+    if edge_coordinates.size == 0:
+        raise ValueError("未检测到边缘点，请检查输入图像。")
+
     # 计算曲率并找到最大曲率的点作为原点
     p0 = t2_curvatureCalculate(edge_coordinates)
-
     # 获得拐点左下部分边缘线的坐标
     left_edge_points = t3_getLeftEdgePoints(edge_coordinates, p0)
-
     # 计算边缘均值点p1
     p1 = t4_left_edge_mid_point(left_edge_points)
-
     # 建立两个坐标系的映射关系矩阵
     T, T_inv = T7_mappingMatrix(p0, p1)
 
     # 2. 建立亮度——照度映射关系
     luminances, illuminances = [], []
-
     for point_illuminance in point_illuminances:
         if len(point_illuminance) != 3:
             raise ValueError("每个点的格式应为 [x, y, illuminance]。")
-
         x, y, illuminance = point_illuminance
-
         if illuminance < 0:
             raise ValueError("照度值必须为正数。")
-
         if T_inv is not None:
             # 坐标系转换
             w, h = T8_coordinateTransformation((x, y), T_inv)
-
             if 0 <= int(h) < gray.shape[0] and 0 <= int(w) < gray.shape[1]:
                 luminance = gray[int(h), int(w)]
             else:
                 luminance = 0  # 如果超出范围，使用默认值
         else:
             luminance = 0  # 如果没有 T_inv，使用默认值
-
         luminances.append(luminance)
         illuminances.append(illuminance)
 
@@ -87,17 +67,17 @@ def A0_HV2IlluminanceMapping(image, point_illuminances, degree=2):
     show_img = image.copy()
     t5_drawCoordinateSystem(show_img, p0, p1)
 
-    # 绘制边缘线和照度点
-    for p, illuminance in zip(edge_coordinates, illuminances):
-        cv2.circle(show_img, (p[0], p[1]), 1, (255, 255, 255), -1)  # 绘制边缘点
-        # 显示照度值
-        # cv2.putText(show_img, f"{illuminance}", (p[0] + 5, p[1] - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 255, 0), 1)
+    # 绘制边缘线
+    for p in edge_coordinates:
+        # 确保绘制的坐标在图像范围内
+        if 0 <= int(p[0]) < show_img.shape[1] and 0 <= int(p[1]) < show_img.shape[0]:
+            cv2.circle(show_img, (int(p[0]), int(p[1])), 1, (255, 255, 255), -1)  # 绘制边缘点
 
     # 绘制原点
     cv2.circle(show_img, (int(p0[0]), int(p0[1])), 3, (0, 0, 255), -1)  # 红色点
 
     # 显示图像
-    cv2.imshow('show_img', show_img)
+    cv2.imshow('Edge Detection', show_img)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
@@ -115,11 +95,11 @@ if __name__ == "__main__":
 
     # 模拟照度数据，格式为 [[x, y, illuminance], ...]
     point_illuminances = [
-        [10, 20, 300],
-        [50, 60, 350],
-        [100, 120, 400],
-        [150, 180, 450],
-        [200, 220, 500],
+        [10, 20, 30],
+        [50, 60, 35],
+        [100, 120, 40],
+        [150, 180, 45],
+        [200, 220, 50],
         # 可以添加更多数据点
     ]
 

@@ -44,13 +44,7 @@ def t1Contours(image):
         if min_area < cv2.contourArea(cnt) and min_perimeter < cv2.arcLength(cnt, True):
             filted_contours.append(cnt)
 
-
-    ## 5.2 周长过滤
-
-
     return filted_contours
-
-
 
 
 if __name__ == "__main__":
@@ -58,18 +52,8 @@ if __name__ == "__main__":
     image1 = image.copy()
     filted_contours = t1Contours(image)
     print(f"检测到的轮廓数量：{len( filted_contours)}")
-    # cv2.drawContours(image, contours, -1, (255, 0, 0), 1)
     cv2.drawContours(image1, filted_contours, -1, (0, 255, 0), 1)
 
-    # img_dict = {
-    #     "Origin": image,
-    #     "Edge": edges,
-    #     "Largest Contour": contour_image,
-    #     # "Origin": image
-    # }
-    # show_image(img_dict)
-    # cv2.imshow('Edge', edges)
-    # cv2.imshow('Open', opening)
     cv2.imshow('Origin', image)
     cv2.imshow('FiltedContours', image1)
     cv2.waitKey(0)

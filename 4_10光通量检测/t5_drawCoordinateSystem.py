@@ -29,11 +29,11 @@ def t5_drawCoordinateSystem(image, p0=[0, 0], p1=[0, 0]):
     y_axis_end = p0 + L * y_dir
 
     # 在图像上绘制坐标轴
-    cv2.line(image, tuple(x_axis_start.astype(int)), tuple(x_axis_end.astype(int)), (255, 0, 0), 1)  # 红色 x 轴
+    cv2.line(image, tuple(x_axis_start.astype(int)), tuple(x_axis_end.astype(int)), (255, 0, 0), 1)  # 蓝色 x 轴
     cv2.line(image, tuple(y_axis_start.astype(int)), tuple(y_axis_end.astype(int)), (255, 0, 0), 1)  # 蓝色 y 轴
 
     # 在 p0 和 p1 上绘制点
-    cv2.circle(image, tuple(p0), 1, (0, 0, 255), -1)  # 绿色 p0
+    cv2.circle(image, tuple(p0), 1, (0, 0, 255), -1)  # 红色 p0
 
 
 if __name__ == "__main__":

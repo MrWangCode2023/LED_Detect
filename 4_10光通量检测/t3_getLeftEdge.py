@@ -1,5 +1,7 @@
 import numpy as np
 
+import numpy as np
+
 def t3_getLeftEdgePoints(edge_points, p):
     """
     获取指定点 p 左边部分的边缘坐标。
@@ -7,14 +9,11 @@ def t3_getLeftEdgePoints(edge_points, p):
     :param p: 分界点的坐标 (x, y)。
     :return: 左边部分的边缘坐标数组。
     """
-    left_points = []
+    # 使用布尔索引选择左侧的点
+    left_points = edge_points[edge_points[:, 0] < p[0]]
 
-    # 遍历边缘点，找到所有左侧的点
-    for point in edge_points:
-        if point[0] < p[0]:  # 判断 x 坐标是否小于分界点的 x 坐标
-            left_points.append(point)
+    return left_points
 
-    return np.array(left_points)
 
 
 if __name__ == "__main__":
