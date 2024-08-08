@@ -110,3 +110,6 @@ DMD（Digital Micromirror Device，数字微镜设备）像元尺寸是指DMD芯
 
 在这个例子中，图像在水平和垂直方向上的放大率都是 2，表示投影图像的尺寸是原始图像尺寸的两倍。
 
+
+# Flare线宽计算
+一维数组[x1, x2, x3, max_index, x4, x5]
